@@ -1,0 +1,54 @@
+name: Publish to ClawHub
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'SKILL.md'
+      - 'config.json'
+      - 'README.md'
+      - 'references/**'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install ClawHub CLI
+        run: npm install -g clawhub
+
+      - name: Extract version from SKILL.md
+        id: version
+        run: |
+          # Pull version from SKILL.md frontmatter or default
+          VERSION=$(grep -oP 'version:\s*\K[\d.]+' SKILL.md || echo "")
+          if [ -z "$VERSION" ]; then
+            # Auto-increment: use run number as patch
+            VERSION="1.2.${{ github.run_number }}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Publishing version: $VERSION"
+
+      - name: Extract changelog from commit
+        id: changelog
+        run: |
+          MSG=$(git log -1 --pretty=%B | head -5)
+          echo "msg<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$MSG" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to ClawHub
+        env:
+          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+        run: |
+          clawhub login --token "$CLAWHUB_TOKEN" --no-browser
+          clawhub publish . \
+            --slug revclaw \
+            --name "Agent Reviews" \
+            --version "${{ steps.version.outputs.version }}" \
+            --changelog "${{ steps.changelog.outputs.msg }}"
