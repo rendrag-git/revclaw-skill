@@ -19,16 +19,11 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install ClawHub CLI
-        run: npm install -g clawhub
-
       - name: Extract version from SKILL.md
         id: version
         run: |
-          # Pull version from SKILL.md frontmatter or default
           VERSION=$(grep -oP 'version:\s*\K[\d.]+' SKILL.md || echo "")
           if [ -z "$VERSION" ]; then
-            # Auto-increment: use run number as patch
             VERSION="1.2.${{ github.run_number }}"
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
@@ -46,9 +41,38 @@ jobs:
         env:
           CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
         run: |
-          clawhub login --token "$CLAWHUB_TOKEN" --no-browser
-          clawhub publish . \
-            --slug revclaw \
-            --name "Agent Reviews" \
-            --version "${{ steps.version.outputs.version }}" \
-            --changelog "${{ steps.changelog.outputs.msg }}"
+          python3 -c "
+          import json, requests, glob, os
+
+          token = os.environ['CLAWHUB_TOKEN']
+          version = '${{ steps.version.outputs.version }}'
+          changelog = '''${{ steps.changelog.outputs.msg }}'''
+
+          payload = json.dumps({
+              'slug': 'revclaw',
+              'displayName': 'Agent Reviews',
+              'version': version,
+              'changelog': changelog,
+              'tags': ['latest'],
+              'acceptLicenseTerms': True
+          })
+
+          # Collect all skill files
+          skill_files = []
+          for pattern in ['SKILL.md', 'config.json', 'README.md', 'references/*']:
+              for path in glob.glob(pattern):
+                  if os.path.isfile(path):
+                      skill_files.append(('files', (path, open(path, 'rb'), 'text/plain')))
+
+          resp = requests.post('https://clawhub.ai/api/v1/skills',
+              headers={'Authorization': 'Bearer ' + token},
+              data={'payload': payload},
+              files=skill_files
+          )
+
+          print(f'Status: {resp.status_code}')
+          print(resp.text)
+
+          if resp.status_code != 200:
+              raise SystemExit(f'Publish failed: {resp.status_code} {resp.text}')
+          "
