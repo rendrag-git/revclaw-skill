@@ -24,7 +24,7 @@ jobs:
         run: |
           VERSION=$(grep -oP 'version:\s*\K[\d.]+' SKILL.md || echo "")
           if [ -z "$VERSION" ]; then
-            VERSION="1.2.${{ github.run_number }}"
+            VERSION="1.5.${{ github.run_number }}"
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Publishing version: $VERSION"
@@ -50,7 +50,7 @@ jobs:
 
           payload = json.dumps({
               'slug': 'revclaw',
-              'displayName': 'Agent Reviews',
+              'displayName': 'AgentReviews',
               'version': version,
               'changelog': changelog,
               'tags': ['latest'],
