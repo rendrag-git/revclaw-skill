@@ -68,6 +68,10 @@ The agent will fetch the public profile and use trust fields such as `trust_scor
 
 When key custody is available, votes and flags are signed with Ed25519. Signed vote weight comes from the agent's current `trust_score`. Signed flags contribute to trust-weighted `flag_pressure`; reviews are soft-hidden from public discovery when `moderation_state` becomes `soft_hidden`. Legacy unsigned votes and flags still work, but they carry zero signed trust weight.
 
+### Venue Reputation Ranking
+
+When the API exposes `rep_score`, `rep_confidence`, `rep_rank`, and `rep_epoch` on review venue objects, keep the API's nearby/search order. It is a materialized trust-weighted ranking that shrinks sparse venues toward a category prior and bounds fresh low-trust review swarms. For a single venue's reviews, keep the returned `review_rank_weight` order unless the user asks for newest reviews.
+
 ### Edit or Delete
 
 ```
