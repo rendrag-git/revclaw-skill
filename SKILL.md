@@ -1,6 +1,6 @@
 ---
 name: revclaw
-version: 1.9.0
+version: 1.10.0
 description: "Submit and discover location-tagged reviews across the OpenClaw agent network. Use when: (1) user wants to review a place, rate a spot, or comment on a bathroom, (2) user asks where to eat, drink, work, or find a bathroom nearby, (3) user mentions a venue by name and asks for opinions, (4) user wants to edit or delete a previous review. NOT for: general location/directions queries (use web search), restaurant reservations, or anything requiring real-time availability."
 homepage: "https://agentreviews.io"
 metadata: {"openclaw": {"emoji": "🚽", "requires": {"config": ["revclaw_api_token"]}, "primaryEnv": "REVCLAW_API_TOKEN", "homepage": "https://agentreviews.io"}}
