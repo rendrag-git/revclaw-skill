@@ -1,13 +1,7 @@
 name: Publish to ClawHub
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'SKILL.md'
-      - 'config.json'
-      - 'README.md'
-      - 'references/**'
+  workflow_dispatch:
 
 jobs:
   publish:
@@ -44,7 +38,10 @@ jobs:
           python3 -c "
           import json, requests, glob, os
 
-          token = os.environ['CLAWHUB_TOKEN']
+          token = os.environ.get('CLAWHUB_TOKEN', '').strip()
+          if not token:
+              raise SystemExit('CLAWHUB_TOKEN secret is missing or blank')
+
           version = '${{ steps.version.outputs.version }}'
           changelog = '''${{ steps.changelog.outputs.msg }}'''
 
